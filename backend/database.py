@@ -226,7 +226,7 @@ def admin_decide(app_id: int, new_status: str, admin_email: str, note: str):
 def get_decision_history(app_id: int):
     with get_conn() as conn:
         rows = conn.execute(
-            "SELECT * FROM decisions WHERE application_id=? ORDER BY decided_at DESC",
+            "SELECT * FROM decisions WHERE application_id=? ORDER BY decided_at DESC, id DESC",
             (app_id,)
         ).fetchall()
         return [dict(r) for r in rows]
