@@ -73,6 +73,15 @@ def err(msg, code=400):
 
 # ─── Public routes ───────────────────────────────────────────────────────────
 
+@app.get("/")
+def home():
+    return ok({
+        "message": "Welcome to the CreditIQ Credit Risk Assessment API",
+        "health_check": "/api/health",
+        "version": "2.0"
+    })
+
+
 @app.get("/api/health")
 def health():
     return ok({"status": "running", "version": "2.0"})
