@@ -16,20 +16,34 @@ import subprocess
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 
+# Ensure required directories exist
+for folder in ["reports", "uploads", "models", "data"]:
+    os.makedirs(os.path.join(BASE, folder), exist_ok=True)
+
 
 def run(cmd, **kwargs):
     return subprocess.run(cmd, cwd=BASE, **kwargs)
 
 
 def backend():
-    print("🚀  Starting Flask backend on http://localhost:5000 …")
+    print("🚀  Starting Flask backend on http://127.0.0.1:5000 internally …")
+    if os.name != "nt":  # Linux/macOS
+        try:
+            # Check if gunicorn is available by attempting to import it or running it
+            subprocess.run(["gunicorn", "--version"], capture_output=True)
+            run(["gunicorn", "--bind", "127.0.0.1:5000", "backend.app:app"])
+            return
+        except Exception:
+            pass
+    # Fallback to dev server
     run([sys.executable, "backend/app.py"])
 
 
 def frontend():
-    print("🎨  Starting Streamlit frontend on http://localhost:8501 …")
+    port = os.environ.get("PORT", "8501")
+    print(f"🎨  Starting Streamlit frontend on http://0.0.0.0:{port} …")
     run([sys.executable, "-m", "streamlit", "run", "frontend/app.py",
-         "--server.port", "8501", "--server.headless", "true"])
+         "--server.port", port, "--server.address", "0.0.0.0", "--server.headless", "true"])
 
 
 def train():
