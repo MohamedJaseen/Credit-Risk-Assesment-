@@ -83,9 +83,9 @@ def _load():
     """Load all available saved models into cache."""
     from tensorflow import keras
     paths = {
-        "cnn":  os.path.join(MODEL_DIR, "cnn_model.h5"),
-        "lstm": os.path.join(MODEL_DIR, "lstm_model.h5"),
-        "tab":  os.path.join(MODEL_DIR, "tab_model.h5"),
+        "cnn":  os.path.join(MODEL_DIR, "cnn_model.keras"),
+        "lstm": os.path.join(MODEL_DIR, "lstm_model.keras"),
+        "tab":  os.path.join(MODEL_DIR, "tab_model.keras"),
     }
     for key, path in paths.items():
         if key not in _cache and os.path.exists(path):

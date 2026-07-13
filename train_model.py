@@ -52,7 +52,7 @@ FEATURE_NAMES = [
 # ─── 1. Dataset generation ──────────────────────────────────────────────────
 
 def generate_dataset(n=7000):
-    print(f"Generating {n:,} synthetic samples…")
+    print(f"Generating {n:,} synthetic samples...")
     emp  = np.random.choice([0,1,2], n, p=[0.62,0.28,0.10])
     age  = np.random.randint(21, 65, n)
     inc  = np.where(emp==0,
@@ -81,7 +81,7 @@ def generate_dataset(n=7000):
     df["label"] = y
     path = os.path.join(DATA_DIR, "dataset.csv")
     df.to_csv(path, index=False)
-    print(f"  Saved → {path}  |  default rate: {y.mean():.1%}")
+    print(f"  Saved -> {path}  |  default rate: {y.mean():.1%}")
     return df
 
 
@@ -103,7 +103,7 @@ def preprocess(df):
 # ─── 3. Training ────────────────────────────────────────────────────────────
 
 def train(model, Xtr, ytr, model_type):
-    print(f"\n  Training {model_type}…")
+    print(f"\n  Training {model_type}...")
     cbs = [
         keras.callbacks.EarlyStopping(patience=6, restore_best_weights=True, monitor="val_auc"),
         keras.callbacks.ReduceLROnPlateau(factor=0.5, patience=3, verbose=0),
@@ -143,7 +143,7 @@ def evaluate(model, Xte, yte, model_type, name):
 # ─── 4. Cross-validation ─────────────────────────────────────────────────────
 
 def cross_validate(build_fn, X, y, model_type, k=5):
-    print(f"  Cross-validating {model_type} ({k}-fold)…")
+    print(f"  Cross-validating {model_type} ({k}-fold)...")
     kf   = StratifiedKFold(n_splits=k, shuffle=True, random_state=42)
     aucs = []
     for fold,(tr_i,va_i) in enumerate(kf.split(X,y),1):
@@ -161,7 +161,7 @@ def cross_validate(build_fn, X, y, model_type, k=5):
         aucs.append(auc)
         print(f"    Fold {fold}: AUC={auc:.4f}")
     mean_auc = np.mean(aucs)
-    print(f"  → Mean AUC: {mean_auc:.4f} ± {np.std(aucs):.4f}")
+    print(f"  -> Mean AUC: {mean_auc:.4f} +/- {np.std(aucs):.4f}")
     return {"mean_auc": round(mean_auc,4), "std_auc": round(np.std(aucs),4), "folds": [round(a,4) for a in aucs]}
 
 
@@ -216,7 +216,7 @@ def save_plots(yte, probs, comparison):
     plt.tight_layout()
     path = os.path.join(MODEL_DIR, "evaluation_plots.png")
     plt.savefig(path, dpi=130, bbox_inches="tight"); plt.close()
-    print(f"  Evaluation plots → {path}")
+    print(f"  Evaluation plots -> {path}")
 
 
 # ─── MAIN ────────────────────────────────────────────────────────────────────
@@ -230,9 +230,9 @@ if __name__ == "__main__":
     all_probs = {}; comparison = {}
 
     for model_fn, mtype, key, save_name in [
-        (build_cnn,             "CNN",            "cnn",  "cnn_model.h5"),
-        (build_lstm,            "LSTM",           "lstm", "lstm_model.h5"),
-        (build_tab_transformer, "TabTransformer", "tab",  "tab_model.h5"),
+        (build_cnn,             "CNN",            "cnn",  "cnn_model.keras"),
+        (build_lstm,            "LSTM",           "lstm", "lstm_model.keras"),
+        (build_tab_transformer, "TabTransformer", "tab",  "tab_model.keras"),
     ]:
         m = model_fn()
         m = train(m, Xtr, ytr, mtype)
@@ -266,7 +266,7 @@ if __name__ == "__main__":
 
     save_plots(yte, all_probs, comparison)
 
-    print("\n✅ Training complete!")
+    print("\n[OK] Training complete!")
     print(f"   Models saved in: {MODEL_DIR}")
     print("   Start backend: python backend/app.py")
     print("   Start frontend: streamlit run frontend/app.py")
