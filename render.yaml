@@ -3,7 +3,7 @@ services:
     name: credit-risk-backend
     runtime: python
     buildCommand: pip install -r backend/requirements.txt
-    startCommand: gunicorn --bind 0.0.0.0:$PORT backend.app:app
+    startCommand: gunicorn backend.app:app
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
