@@ -46,9 +46,17 @@ from backend.auth import (
 from ml_model.feature_engineering import compute_features, to_array, scale
 from ml_model.credit_score import compute_credit_score
 from ml_model.decision_engine import make_decision
-from ml_model.explain import approx_shap, shap_to_text, shap_bar_b64
 from ml_model.recommendations import generate_recommendations
-from ml_model.predictor import predict_all
+
+
+def _lazy_predict_all(*args, **kwargs):
+    from ml_model.predictor import predict_all
+    return predict_all(*args, **kwargs)
+
+
+def _lazy_explain(*args, **kwargs):
+    from ml_model.explain import approx_shap, shap_to_text, shap_bar_b64
+    return approx_shap(*args, **kwargs), shap_to_text(*args, **kwargs), shap_bar_b64(*args, **kwargs)
 
 app = Flask(__name__)
 CORS(app)
@@ -147,7 +155,7 @@ def predict():
         # 3. ML prediction (CNN + LSTM + TabTransformer ensemble)
         raw_arr  = to_array(feats)
         scaled   = scale(raw_arr)
-        preds    = predict_all(scaled)
+        preds    = _lazy_predict_all(scaled)
         prob     = preds["ensemble"]
 
         # 4. ML-based recommendation (not final decision — admin decides)
@@ -157,9 +165,7 @@ def predict():
         dec_result = make_decision(prob, cs["score"], feats)
 
         # 6. SHAP explanation
-        shap_vals = approx_shap(scaled, prob)
-        shap_text = shap_to_text(shap_vals, prob)
-        shap_img  = shap_bar_b64(shap_vals)
+        shap_vals, shap_text, shap_img = _lazy_explain(scaled, prob)
 
         # 7. Recommendations
         recs = generate_recommendations(feats, prob, cs["score"], dec_result["decision"])
