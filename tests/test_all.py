@@ -44,7 +44,15 @@ def test_get_api_base_prefers_api_url_env(monkeypatch):
 def test_get_api_base_falls_back_to_localhost(monkeypatch):
     monkeypatch.delenv("API_URL", raising=False)
     monkeypatch.delenv("BACKEND_URL", raising=False)
+    monkeypatch.delenv("RENDER", raising=False)
     assert get_api_base() == "http://127.0.0.1:5000"
+
+
+def test_get_api_base_uses_render_backend_fallback(monkeypatch):
+    monkeypatch.delenv("API_URL", raising=False)
+    monkeypatch.delenv("BACKEND_URL", raising=False)
+    monkeypatch.setenv("RENDER", "true")
+    assert get_api_base() == "https://credit-risk-api.onrender.com"
 
 
 class TestCreditScore:
