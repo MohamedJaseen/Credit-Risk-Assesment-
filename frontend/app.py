@@ -27,7 +27,9 @@ import plotly.graph_objects as go
 import plotly.express as px
 from datetime import datetime
 
-API = os.environ.get("API_URL", "http://127.0.0.1:5000")
+from frontend.config import get_api_base
+
+API = get_api_base()
 
 # ═══════════════════════════════════════════════════════════════════
 #  CSS — refined editorial-finance aesthetic

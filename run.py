@@ -26,12 +26,12 @@ def run(cmd, **kwargs):
 
 
 def backend():
-    print("🚀  Starting Flask backend on http://127.0.0.1:5000 internally …")
+    port = os.environ.get("PORT", "5000")
+    print(f"🚀  Starting Flask backend on 0.0.0.0:{port} …")
     if os.name != "nt":  # Linux/macOS
         try:
-            # Check if gunicorn is available by attempting to import it or running it
             subprocess.run(["gunicorn", "--version"], capture_output=True)
-            run(["gunicorn", "--bind", "127.0.0.1:5000", "backend.app:app"])
+            run(["gunicorn", "--bind", f"0.0.0.0:{port}", "backend.app:app"])
             return
         except Exception:
             pass
@@ -70,8 +70,8 @@ def all_services():
     import time; time.sleep(2)
     t2.start()
     print("\n✅  Both services started.")
-    print("   Backend  → http://localhost:5000")
-    print("   Frontend → http://localhost:8501")
+    print("   Backend  → http://0.0.0.0:5000")
+    print("   Frontend → http://0.0.0.0:8501")
     print("   Press Ctrl+C to stop.\n")
     try:
         t1.join(); t2.join()

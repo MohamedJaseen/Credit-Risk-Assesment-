@@ -32,6 +32,19 @@ sys.path.insert(0, ROOT)
 # ─────────────────────────────────────────────────────────────────────────────
 
 from ml_model.credit_score import compute_credit_score
+from frontend.config import get_api_base
+
+
+def test_get_api_base_prefers_api_url_env(monkeypatch):
+    monkeypatch.setenv("API_URL", "https://backend.example.com")
+    monkeypatch.delenv("BACKEND_URL", raising=False)
+    assert get_api_base() == "https://backend.example.com"
+
+
+def test_get_api_base_falls_back_to_localhost(monkeypatch):
+    monkeypatch.delenv("API_URL", raising=False)
+    monkeypatch.delenv("BACKEND_URL", raising=False)
+    assert get_api_base() == "http://127.0.0.1:5000"
 
 
 class TestCreditScore:

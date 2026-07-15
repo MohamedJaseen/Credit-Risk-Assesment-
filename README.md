@@ -136,7 +136,40 @@ old_status, new_status, note, decided_at
 
 ---
 
-## 🔒 RBAC Rules
+## � Render Deployment
+
+This project is set up for Render with two services:
+
+- Backend service: exposes the Flask API at /api/*
+- Frontend service: runs Streamlit and calls the backend through the API_URL environment variable
+
+### Required Render environment variables
+
+For the frontend service, set:
+
+```bash
+API_URL=https://<your-backend-service>.onrender.com
+```
+
+For the backend service, Render will provide PORT automatically. The app is already configured to bind to that port.
+
+### Recommended Render setup
+
+1. Create a web service for the backend using the repository.
+2. Use the start command:
+   ```bash
+   gunicorn --config gunicorn.conf.py backend.app:app
+   ```
+3. Create a second web service for the frontend.
+4. Use the start command:
+   ```bash
+   streamlit run frontend/app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true
+   ```
+5. Set the frontend's API_URL to the backend service URL.
+
+---
+
+## �🔒 RBAC Rules
 
 ```
 USER role:

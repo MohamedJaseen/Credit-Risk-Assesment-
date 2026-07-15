@@ -1,11 +1,25 @@
 services:
   - type: web
-    name: credit-risk-app
+    name: credit-risk-api
     runtime: python
     buildCommand: pip install --no-cache-dir -r requirements.txt
-    startCommand: python run.py all
+    startCommand: gunicorn --config gunicorn.conf.py backend.app:app
+    healthCheckPath: /api/health
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
+      - key: PORT
+        value: 10000
+
+  - type: web
+    name: credit-risk-ui
+    runtime: python
+    buildCommand: pip install --no-cache-dir -r requirements.txt
+    startCommand: streamlit run frontend/app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: PORT
+        value: 10000
       - key: API_URL
-        value: http://127.0.0.1:5000
+        value: https://credit-risk-api.onrender.com
