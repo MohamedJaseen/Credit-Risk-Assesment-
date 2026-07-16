@@ -187,10 +187,13 @@ auth_h   = lambda: {"Authorization": f"Bearer {tok()}"}
 
 def api_call(method, path, **kwargs):
     """Safe API call — returns (data_or_None, error_string_or_None)."""
+    cold_start_message = (
+        "The backend is waking up. Please wait 30–60 seconds and try again."
+    )
     try:
-        kwargs.setdefault("timeout", 15)
+        kwargs.setdefault("timeout", 90)
         fn = getattr(requests, method)
-        r  = fn(f"{API}{path}", **kwargs)
+        r = fn(f"{API}{path}", **kwargs)
         try:
             body = r.json()
         except Exception:
@@ -200,8 +203,10 @@ def api_call(method, path, **kwargs):
             msg = body.get("error") or body.get("message") or f"HTTP {r.status_code}"
             return None, msg
         return body, None
-    except requests.ConnectionError:
-        return None, "Cannot reach the backend. Make sure Flask is running on port 5000."
+    except requests.exceptions.Timeout:
+        return None, cold_start_message
+    except requests.exceptions.ConnectionError:
+        return None, cold_start_message
     except Exception as e:
         return None, str(e)
 

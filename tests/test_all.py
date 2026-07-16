@@ -22,6 +22,7 @@ import os
 import json
 import pytest
 import numpy as np
+import requests
 
 # Add project root to path
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -33,6 +34,7 @@ sys.path.insert(0, ROOT)
 
 from ml_model.credit_score import compute_credit_score
 from frontend.config import get_api_base
+from frontend import app as frontend_app
 
 
 def test_get_api_base_prefers_api_url_env(monkeypatch):
@@ -53,6 +55,41 @@ def test_get_api_base_uses_render_backend_fallback(monkeypatch):
     monkeypatch.delenv("BACKEND_URL", raising=False)
     monkeypatch.setenv("RENDER", "true")
     assert get_api_base() == "https://credit-risk-api.onrender.com"
+
+
+def test_api_call_uses_longer_timeout_for_backend_requests(monkeypatch):
+    captured = {}
+
+    class FakeResponse:
+        status_code = 200
+
+        def json(self):
+            return {"ok": True}
+
+    def fake_post(url, **kwargs):
+        captured["url"] = url
+        captured["timeout"] = kwargs["timeout"]
+        return FakeResponse()
+
+    monkeypatch.setattr(frontend_app.requests, "post", fake_post)
+
+    data, error = frontend_app.api_call("post", "/api/test", json={"a": 1})
+
+    assert data == {"ok": True}
+    assert error is None
+    assert captured["timeout"] == 90
+
+
+def test_api_call_reports_cold_start_timeout(monkeypatch):
+    def fake_post(url, **kwargs):
+        raise requests.exceptions.Timeout("timed out")
+
+    monkeypatch.setattr(frontend_app.requests, "post", fake_post)
+
+    data, error = frontend_app.api_call("post", "/api/test", json={"a": 1})
+
+    assert data is None
+    assert error == "The backend is waking up. Please wait 30–60 seconds and try again."
 
 
 class TestCreditScore:
