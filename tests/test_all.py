@@ -54,7 +54,7 @@ def test_get_api_base_uses_render_backend_fallback(monkeypatch):
     monkeypatch.delenv("API_URL", raising=False)
     monkeypatch.delenv("BACKEND_URL", raising=False)
     monkeypatch.setenv("RENDER", "true")
-    assert get_api_base() == "https://credit-risk-api.onrender.com"
+    assert get_api_base() == "https://credit-risk-assesment-1.onrender.com"
 
 
 def test_api_call_uses_longer_timeout_for_backend_requests(monkeypatch):

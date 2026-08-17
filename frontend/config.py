@@ -2,7 +2,7 @@ import os
 
 
 DEFAULT_API_BASE = "http://127.0.0.1:5000"
-RENDER_API_BASE = "https://credit-risk-api.onrender.com"
+RENDER_API_BASE = "https://credit-risk-assesment-1.onrender.com"
 
 
 def get_api_base():

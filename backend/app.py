@@ -24,6 +24,8 @@ Routes
 
 import json
 import os
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 import sys
 import numpy as np
 from flask import Flask, request, jsonify, g
@@ -54,9 +56,12 @@ def _lazy_predict_all(*args, **kwargs):
     return predict_all(*args, **kwargs)
 
 
-def _lazy_explain(*args, **kwargs):
+def _lazy_explain(scaled, prob):
     from ml_model.explain import approx_shap, shap_to_text, shap_bar_b64
-    return approx_shap(*args, **kwargs), shap_to_text(*args, **kwargs), shap_bar_b64(*args, **kwargs)
+    shap_vals = approx_shap(scaled, prob)
+    shap_text = shap_to_text(shap_vals, prob)
+    shap_img  = shap_bar_b64(shap_vals)
+    return shap_vals, shap_text, shap_img
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}}, allow_headers=["Content-Type", "Authorization"], methods=["GET", "POST", "OPTIONS", "PUT", "DELETE"])
@@ -78,6 +83,16 @@ def add_cors_headers(response):
     response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS, PUT, DELETE"
     return response
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    app.logger.error(f"Unhandled Exception: {e}", exc_info=True)
+    response = jsonify({"success": False, "error": f"Internal Server Error: {str(e)}"})
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS, PUT, DELETE"
+    return response, 500
+
 init_db()
 
 
@@ -364,4 +379,4 @@ def _parse_json_fields(app_dict):
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="0.0.0.0", port=port, debug=False, use_reloader=False)

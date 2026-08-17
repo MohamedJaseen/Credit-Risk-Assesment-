@@ -4,10 +4,26 @@
    ═══════════════════════════════════════════════════════════════════ */
 
 // State Management
-const DEFAULT_API_BASE = "https://credit-risk-assesment-1.onrender.com";
+const CLOUD_API_BASE = "https://credit-risk-assesment-1.onrender.com";
+
+function getInitialApiBase() {
+  const saved = localStorage.getItem("creditiq_api_base");
+  if (saved) return saved;
+
+  const host = window.location.hostname;
+  if (host === "localhost" || host === "127.0.0.1" || host === "") {
+    if (window.location.port === "5000") {
+      return window.location.origin;
+    }
+    return "http://127.0.0.1:5000";
+  }
+  return CLOUD_API_BASE;
+}
+
+const DEFAULT_API_BASE = getInitialApiBase();
 
 const state = {
-  apiBase: localStorage.getItem("creditiq_api_base") || DEFAULT_API_BASE,
+  apiBase: DEFAULT_API_BASE,
   token: localStorage.getItem("creditiq_token") || null,
   user: JSON.parse(localStorage.getItem("creditiq_user") || "null"),
   currentView: "home",
@@ -49,12 +65,20 @@ async function apiFetch(endpoint, options = {}) {
 
   try {
     const response = await fetch(url, { ...options, headers });
-    const data = await response.json();
 
     if (response.status === 401) {
       showToast("Session expired or unauthorized. Please log in.", "error");
       logout();
       return null;
+    }
+
+    let data;
+    const contentType = response.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      data = await response.json();
+    } else {
+      const rawText = await response.text();
+      data = { message: rawText || `Server error (${response.status})` };
     }
 
     if (!response.ok) {
@@ -64,7 +88,15 @@ async function apiFetch(endpoint, options = {}) {
     return data;
   } catch (err) {
     console.error("API Error:", err);
-    showToast(err.message || "Network error. Please check backend connection.", "error");
+    let msg = err.message || "Network error. Please check backend connection.";
+    if (err.name === "TypeError" || msg.includes("Failed to fetch") || msg.includes("NetworkError")) {
+      if (state.apiBase.includes("onrender.com")) {
+        msg = `Unable to connect to Render API (${state.apiBase}). Free tier instances take ~50s to wake up on cold start, or check your API URL in settings (⚙️).`;
+      } else {
+        msg = `Cannot connect to API server at ${state.apiBase}. Ensure your local backend is running (python run.py backend) or update API URL in settings (⚙️).`;
+      }
+    }
+    showToast(msg, "error");
     throw err;
   }
 }
@@ -365,11 +397,27 @@ function renderPredictionResults(data) {
 
   // Recommendations
   const recsContainer = document.getElementById("res-recommendations");
-  recsContainer.innerHTML = (data.recommendations || []).map(rec => `
-    <div style="padding: 0.6rem; border-radius: 8px; background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.2); margin-bottom: 0.5rem; font-size: 0.85rem;">
-      💡 ${rec}
-    </div>
-  `).join("");
+  recsContainer.innerHTML = (data.recommendations || []).map(rec => {
+    if (typeof rec === "string") {
+      return `
+        <div style="padding: 0.75rem; border-radius: 8px; background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.2); margin-bottom: 0.5rem; font-size: 0.85rem;">
+          💡 ${rec}
+        </div>
+      `;
+    }
+    const title = rec.title || "Recommendation";
+    const detail = rec.detail || rec.text || "";
+    const impact = rec.impact ? `<div style="font-size: 0.78rem; color: #60a5fa; margin-top: 0.3rem;">⚡ Impact: ${rec.impact}</div>` : "";
+    const badgeColor = rec.priority === "high" ? "#ef4444" : rec.priority === "medium" ? "#f59e0b" : "#3b82f6";
+
+    return `
+      <div style="padding: 0.75rem; border-radius: 8px; background: rgba(30,41,59,0.6); border: 1px solid rgba(59,130,246,0.2); border-left: 3px solid ${badgeColor}; margin-bottom: 0.6rem; font-size: 0.85rem;">
+        <div style="font-weight: 600; color: #f8fafc; margin-bottom: 0.2rem;">💡 ${title}</div>
+        <div style="color: #94a3b8; font-size: 0.82rem;">${detail}</div>
+        ${impact}
+      </div>
+    `;
+  }).join("");
 
   // SHAP chart image or fallback text
   const shapImg = document.getElementById("res-shap-img");
@@ -591,6 +639,14 @@ function initApiUrlInput() {
   const input = document.getElementById("api-base-url-input");
   if (input) {
     input.value = state.apiBase;
+  }
+}
+
+function setApiPreset(url) {
+  const input = document.getElementById("api-base-url-input");
+  if (input) {
+    input.value = url;
+    saveApiUrl();
   }
 }
 

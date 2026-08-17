@@ -544,6 +544,9 @@ def _show_app_detail(app_id):
     if recs:
         st.markdown('<div class="sec-label">Personalised Recommendations</div>', unsafe_allow_html=True)
         for r in recs:
+            if isinstance(r, str):
+                st.markdown(f'<div class="card">💡 <span style="color:#cbd5e1">{r}</span></div>', unsafe_allow_html=True)
+                continue
             if not isinstance(r, dict): continue
             p = r.get("priority","medium")
             tag_cls = {"high":"tag-high","medium":"tag-medium","low":"tag-low","info":"tag-info"}.get(p,"tag-info")
