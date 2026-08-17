@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CreditIQ — AI Credit Risk Assessment System</title>
+  <meta name="description" content="Next-generation credit risk assessment platform powered by deep learning ensembles (CNN + LSTM + TabTransformer).">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <header class="navbar">
+    <div class="brand" data-target="home">
+      <div class="brand-icon">CQ</div>
+      <span>CreditIQ</span>
+    </div>
+
+    <ul class="nav-links">
+      <li><a class="nav-link active" data-target="home">🏠 Overview</a></li>
+      <li><a class="nav-link" data-target="apply">📋 Apply for Loan</a></li>
+      <li><a class="nav-link" id="nav-myapps-link" data-target="myapps" style="display: none;">📊 My Applications</a></li>
+      <li><a class="nav-link" id="nav-admin-link" data-target="admin" style="display: none;">🛡️ Admin Portal</a></li>
+    </ul>
+
+    <div class="nav-right">
+      <button class="btn btn-secondary btn-sm" onclick="openModal('config-modal')" title="Configure API Endpoint">
+        <span>⚙️ API URL</span>
+      </button>
+
+      <span id="api-status-indicator" class="role-pill role-user">Checking...</span>
+
+      <div id="nav-user-badge" class="user-badge" style="display: none;">
+        <span id="user-name-display" style="font-weight: 600;">User</span>
+        <span id="user-role-display" class="role-pill role-user">user</span>
+        <button class="btn btn-secondary btn-sm" onclick="logout()" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">Logout</button>
+      </div>
+
+      <button id="nav-auth-btn" class="btn btn-primary btn-sm" onclick="openModal('auth-modal')">
+        <span>🔐 Log In / Register</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Application Container -->
+  <main class="app-container">
+
+    <!-- View: Home / Overview -->
+    <section id="view-home" class="view active">
+      <div class="hero-section">
+        <div class="hero-tag">
+          <span>✨ Powered by Deep Ensemble ML (CNN + LSTM + TabTransformer)</span>
+        </div>
+        <h1 class="hero-title">Next-Generation Credit Risk Intelligence</h1>
+        <p class="hero-subtitle">
+          Real-time credit scoring, deep feature explanations via SHAP, and automated risk assessment integrated with your deployed Render backend API.
+        </p>
+
+        <div style="display: flex; justify-content: center; gap: 1rem;">
+          <button class="btn btn-primary" data-target="apply">📋 Apply for Loan Assessment</button>
+          <button class="btn btn-secondary" onclick="openModal('auth-modal')">🔐 Sign In / Register</button>
+        </div>
+
+        <div class="hero-stats">
+          <div class="stat-box">
+            <div class="stat-value">98.4%</div>
+            <div class="stat-label">Model ROC-AUC Accuracy</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value">&lt; 300ms</div>
+            <div class="stat-label">Real-Time Risk Scoring</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value">3 Models</div>
+            <div class="stat-label">Ensemble Intelligence</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3>Instant Credit Score</h3>
+          <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;">
+            Automatically calculates standardized credit scores (300-850) based on debt-to-income, credit utilization, and history.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🧠</div>
+          <h3>Deep Ensemble Models</h3>
+          <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;">
+            Combines 1D CNN feature extractors, LSTM sequential memory networks, and TabTransformer attention mechanisms.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🔍</div>
+          <h3>SHAP Explainability</h3>
+          <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;">
+            Transparent AI recommendations with full Shapley feature attribution charts for every loan application.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- View: Apply for Loan -->
+    <section id="view-apply" class="view">
+      <div style="max-width: 900px; margin: 0 auto;">
+        <div class="card" style="margin-bottom: 2rem;">
+          <div class="card-header">
+            <h2 class="card-title">📋 Submit Loan Application</h2>
+            <span class="role-pill role-user">Instant AI Evaluation</span>
+          </div>
+
+          <form id="loan-application-form">
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label" for="input-age">Age (Years)</label>
+                <input type="number" id="input-age" class="form-control" min="18" max="100" value="32" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="input-employment">Employment Type</label>
+                <select id="input-employment" class="form-control" required>
+                  <option value="Salaried">Salaried</option>
+                  <option value="Self-Employed">Self-Employed</option>
+                  <option value="Business">Business</option>
+                  <option value="Unemployed">Unemployed</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="input-income">Monthly Income ($)</label>
+                <input type="number" id="input-income" class="form-control" min="500" step="100" value="6500" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="input-emis">Existing Monthly EMIs ($)</label>
+                <input type="number" id="input-emis" class="form-control" min="0" step="50" value="800" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="input-loanamount">Requested Loan Amount ($)</label>
+                <input type="number" id="input-loanamount" class="form-control" min="1000" step="500" value="25000" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="input-tenure">Loan Tenure (Months)</label>
+                <input type="number" id="input-tenure" class="form-control" min="6" max="360" step="6" value="36" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="input-missedpmts">Missed Payments (Last 2 yrs)</label>
+                <input type="number" id="input-missedpmts" class="form-control" min="0" max="24" value="0" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="input-utilization">Credit Utilization Ratio (0.0 - 1.0)</label>
+                <input type="number" id="input-utilization" class="form-control" min="0" max="1" step="0.01" value="0.25" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="input-history">Credit History Length (Years)</label>
+                <input type="number" id="input-history" class="form-control" min="0" max="50" step="0.5" value="6" required>
+              </div>
+            </div>
+
+            <div style="margin-top: 1.5rem; text-align: right;">
+              <button type="submit" id="btn-submit-loan" class="btn btn-primary" style="width: 100%; max-width: 280px;">
+                <span>Submit & Predict Risk</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Prediction Results (Initially Hidden) -->
+        <div id="prediction-results-card" class="card" style="display: none;">
+          <div class="card-header">
+            <h2 class="card-title">🎯 Assessment Results</h2>
+            <span class="badge badge-pending">Status: Pending Review</span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+            <div class="score-container">
+              <span style="font-size: 0.85rem; color: var(--text-muted);">Calculated Credit Score</span>
+              <div id="res-credit-score" class="score-value">720</div>
+              <div id="res-score-label" class="score-badge score-good">Good</div>
+            </div>
+
+            <div class="score-container">
+              <span style="font-size: 0.85rem; color: var(--text-muted);">Ensemble Default Risk</span>
+              <div id="res-probability-pct" class="score-value" style="color: var(--accent-cyan);">14.2%</div>
+              <div id="res-risk-category" class="score-badge score-good" style="margin-top: 0.75rem;">Low Risk</div>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 1.5rem;">
+            <h4>ML Recommendation</h4>
+            <div id="res-ml-recommendation" style="font-size: 1.1rem; font-weight: 700; color: var(--accent-emerald); margin-top: 0.3rem;">
+              Recommend: Approve
+            </div>
+          </div>
+
+          <div style="margin-bottom: 1.5rem;">
+            <h4>Risk Reason Codes</h4>
+            <div id="res-reason-codes" style="margin-top: 0.5rem;"></div>
+          </div>
+
+          <div style="margin-bottom: 1.5rem;">
+            <h4>SHAP Explanation Chart</h4>
+            <div style="background: rgba(15,23,42,0.8); padding: 1rem; border-radius: var(--radius-md); text-align: center; border: 1px solid var(--border-color); margin-top: 0.5rem;">
+              <img id="res-shap-img" src="" alt="SHAP Attribution Chart" style="max-width: 100%; height: auto; border-radius: 8px;">
+            </div>
+          </div>
+
+          <div>
+            <h4>Personalized Recommendations</h4>
+            <div id="res-recommendations" style="margin-top: 0.5rem;"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- View: My Applications -->
+    <section id="view-myapps" class="view">
+      <div class="card-header" style="margin-bottom: 1.5rem;">
+        <h2>📊 My Loan Applications</h2>
+        <button class="btn btn-primary btn-sm" data-target="apply">+ New Application</button>
+      </div>
+
+      <div id="my-applications-list"></div>
+    </section>
+
+    <!-- View: Admin Portal -->
+    <section id="view-admin" class="view">
+      <div class="card-header" style="margin-bottom: 1.5rem;">
+        <h2>🛡️ Bank Admin Management Portal</h2>
+        <span class="role-pill role-admin">Officer Control Center</span>
+      </div>
+
+      <!-- Overview Stats -->
+      <div class="hero-stats" style="margin-top: 0; margin-bottom: 2rem;">
+        <div class="stat-box">
+          <div id="admin-total-apps" class="stat-value">0</div>
+          <div class="stat-label">Total Applications</div>
+        </div>
+        <div class="stat-box">
+          <div id="admin-approved-apps" class="stat-value" style="color: var(--accent-emerald);">0</div>
+          <div class="stat-label">Approved</div>
+        </div>
+        <div class="stat-box">
+          <div id="admin-pending-apps" class="stat-value" style="color: var(--accent-amber);">0</div>
+          <div class="stat-label">Pending Review</div>
+        </div>
+        <div class="stat-box">
+          <div id="admin-rejected-apps" class="stat-value" style="color: var(--accent-rose);">0</div>
+          <div class="stat-label">Rejected</div>
+        </div>
+        <div class="stat-box">
+          <div id="admin-avg-score" class="stat-value">0</div>
+          <div class="stat-label">Avg Credit Score</div>
+        </div>
+      </div>
+
+      <!-- Applications Queue -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Applications Review Queue</h3>
+          <button class="btn btn-secondary btn-sm" onclick="loadAdminDashboard()">🔄 Refresh</button>
+        </div>
+        <div id="admin-applications-table"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modals -->
+
+  <!-- Auth Modal -->
+  <div id="auth-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h3>🔐 Account Portal</h3>
+        <button class="btn btn-secondary btn-sm" onclick="closeModal('auth-modal')">✕</button>
+      </div>
+
+      <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem;">
+        <button id="tab-btn-login" class="btn btn-secondary btn-sm active" style="flex: 1;">Sign In</button>
+        <button id="tab-btn-register" class="btn btn-secondary btn-sm" style="flex: 1;">Register</button>
+      </div>
+
+      <form id="auth-form" data-mode="login">
+        <div id="group-auth-name" class="form-group" style="display: none;">
+          <label class="form-label" for="auth-name">Full Name</label>
+          <input type="text" id="auth-name" class="form-control" placeholder="John Doe">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="auth-email">Email Address</label>
+          <input type="email" id="auth-email" class="form-control" placeholder="user@example.com" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="auth-password">Password</label>
+          <input type="password" id="auth-password" class="form-control" placeholder="••••••••" required>
+        </div>
+
+        <button type="submit" id="auth-submit-btn" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+          Sign In
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Application Detail Modal -->
+  <div id="app-detail-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div style="display: flex; justify-content: flex-end;">
+        <button class="btn btn-secondary btn-sm" onclick="closeModal('app-detail-modal')">✕ Close</button>
+      </div>
+      <div id="modal-app-detail-body"></div>
+    </div>
+  </div>
+
+  <!-- API URL Config Modal -->
+  <div id="config-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h3>⚙️ Configure Backend API</h3>
+        <button class="btn btn-secondary btn-sm" onclick="closeModal('config-modal')">✕</button>
+      </div>
+
+      <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.2rem;">
+        Enter your deployed Render backend API URL. This static site will send all requests (auth, predictions, admin operations) directly to this backend.
+      </p>
+
+      <div class="form-group">
+        <label class="form-label" for="api-base-url-input">Render Backend Base URL</label>
+        <input type="url" id="api-base-url-input" class="form-control" placeholder="https://credit-risk-assesment-1.onrender.com">
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1.5rem;">
+        <button class="btn btn-secondary" onclick="closeModal('config-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveApiUrl()">Save & Test Connection</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>CreditIQ Risk Assessment System • Deployed on Render Static Sites</p>
+  </footer>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

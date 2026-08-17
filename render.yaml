@@ -22,4 +22,15 @@ services:
       - key: PORT
         value: 10000
       - key: API_URL
-        value: https://credit-risk-api.onrender.com
+        value: https://credit-risk-assesment-1.onrender.com
+      - key: BACKEND_URL
+        value: https://credit-risk-assesment-1.onrender.com
+
+  - type: static
+    name: credit-risk-static-ui
+    buildCommand: null
+    staticPublishPath: ./static_site
+    envVars:
+      - key: API_URL
+        value: https://credit-risk-assesment-1.onrender.com
+

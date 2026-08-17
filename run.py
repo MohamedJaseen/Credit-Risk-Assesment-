@@ -79,10 +79,18 @@ def all_services():
         print("\nStopped.")
 
 
+def serve_static():
+    port = os.environ.get("PORT", "8000")
+    print(f"🌐  Serving Static Site on http://0.0.0.0:{port} …")
+    static_dir = os.path.join(BASE, "static_site")
+    run([sys.executable, "-m", "http.server", port, "--directory", static_dir])
+
+
 if __name__ == "__main__":
     commands = {
         "backend":  backend,
         "frontend": frontend,
+        "static":   serve_static,
         "train":    train,
         "test":     test,
         "analyze":  analyze,
@@ -94,3 +102,4 @@ if __name__ == "__main__":
         fn()
     else:
         print(f"Unknown command '{cmd}'. Choose from: {list(commands.keys())}")
+
