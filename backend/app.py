@@ -59,7 +59,7 @@ def _lazy_explain(*args, **kwargs):
     return approx_shap(*args, **kwargs), shap_to_text(*args, **kwargs), shap_bar_b64(*args, **kwargs)
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}}, allow_headers=["Content-Type", "Authorization"])
 
 # Initialise database on startup
 init_db()
