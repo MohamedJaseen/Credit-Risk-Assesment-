@@ -67,6 +67,8 @@ def login_required(f):
     """Decorator: any authenticated user."""
     @wraps(f)
     def wrapper(*args, **kwargs):
+        if request.method == "OPTIONS":
+            return f(*args, **kwargs)
         token = get_token_from_request()
         if not token:
             return jsonify({"error": "Authentication required. Please log in."}), 401
@@ -82,6 +84,8 @@ def admin_required(f):
     """Decorator: admin role only."""
     @wraps(f)
     def wrapper(*args, **kwargs):
+        if request.method == "OPTIONS":
+            return f(*args, **kwargs)
         token = get_token_from_request()
         if not token:
             return jsonify({"error": "Authentication required."}), 401
@@ -93,6 +97,7 @@ def admin_required(f):
         g.user = payload
         return f(*args, **kwargs)
     return wrapper
+
 
 
 # ─── Auth service functions ─────────────────────────────────────────────────
