@@ -293,6 +293,7 @@ async function handleLoanApplicationSubmit(e) {
   e.preventDefault();
 
   if (!state.user) {
+    showToast("Please log in or register an account to submit your loan application.", "info");
     openModal("auth-modal");
     return;
   }
