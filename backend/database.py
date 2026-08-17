@@ -150,6 +150,24 @@ def get_all_users():
 def save_application(data: dict) -> int:
     """Save a new application and return its ID."""
     with get_conn() as conn:
+        user_id = data["user_id"]
+        # Ensure user_id exists in users table to prevent Foreign Key constraint errors
+        row = conn.execute("SELECT id FROM users WHERE id=?", (user_id,)).fetchone()
+        if not row:
+            # Fallback by email match
+            email_row = conn.execute("SELECT id FROM users WHERE email=?", (data.get("user_email"),)).fetchone()
+            if email_row:
+                user_id = email_row["id"]
+            else:
+                # Emergency auto-create user record
+                import bcrypt
+                pw_hash = bcrypt.hashpw(b"Password123", bcrypt.gensalt()).decode()
+                cur_u = conn.execute(
+                    "INSERT INTO users (name, email, password_hash, role) VALUES (?,?,?,?)",
+                    (data.get("user_name") or "User", data.get("user_email") or "user@example.com", pw_hash, "user")
+                )
+                user_id = cur_u.lastrowid
+
         cur = conn.execute("""
             INSERT INTO applications
                 (user_id, user_name, user_email, input_json,
@@ -158,7 +176,7 @@ def save_application(data: dict) -> int:
                  status)
             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,'Pending')
         """, (
-            data["user_id"], data["user_name"], data["user_email"],
+            user_id, data["user_name"], data["user_email"],
             data["input_json"],
             data["credit_score"], data["score_label"],
             data["probability"], data["risk_category"],

@@ -75,6 +75,9 @@ def login_required(f):
         payload = decode_token(token)
         if not payload:
             return jsonify({"error": "Session expired. Please log in again."}), 401
+        user = get_user_by_email(payload.get("email"))
+        if user:
+            payload["sub"] = str(user["id"])
         g.user = payload   # attach user info to Flask's g object
         return f(*args, **kwargs)
     return wrapper
@@ -94,6 +97,9 @@ def admin_required(f):
             return jsonify({"error": "Session expired. Please log in again."}), 401
         if payload.get("role") != "admin":
             return jsonify({"error": "Access denied. Admin privileges required."}), 403
+        user = get_user_by_email(payload.get("email"))
+        if user:
+            payload["sub"] = str(user["id"])
         g.user = payload
         return f(*args, **kwargs)
     return wrapper
